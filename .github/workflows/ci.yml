@@ -5,12 +5,12 @@ on:
     branches: [ main, master ]
   pull_request:
     branches: [ main, master ]
-  workflow_dispatch:        # ручной запуск из UI
+  workflow_dispatch:
   schedule:
-    - cron: '0 3 * * *'     # ночной прогон в 03:00 UTC
+    - cron: '0 3 * * *'
 
 permissions:
-  contents: write           # для публикации на gh-pages
+  contents: write
   pages: write
   id-token: write
 
@@ -21,9 +21,9 @@ jobs:
     timeout-minutes: 30
 
     strategy:
-      fail-fast: false       # даже если один упал — остальные идут
+      fail-fast: false
       matrix:
-        browser: [ chrome ]  # можно добавить firefox, edge
+        browser: [ chrome ]
 
     steps:
       - name: Checkout repository
@@ -80,28 +80,25 @@ jobs:
           path: target/surefire-reports
           retention-days: 7
 
-  # ============================================================
-  # Публикация Allure-отчёта на GitHub Pages
-  # ============================================================
   publish-report:
-  name: Publish Allure report to GitHub Pages
-  needs: test
-  if: always() && github.ref == 'refs/heads/main'
-  runs-on: ubuntu-latest
-  steps:
-    - name: Checkout repository
-      uses: actions/checkout@v4
+    name: Publish Allure report to GitHub Pages
+    needs: test
+    if: always() && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-    - name: Download Allure report
-      uses: actions/download-artifact@v4
-      with:
-        name: allure-report
-        path: allure-report
+      - name: Download Allure report
+        uses: actions/download-artifact@v4
+        with:
+          name: allure-report-chrome
+          path: allure-report
 
-    - name: Deploy to GitHub Pages
-      uses: peaceiris/actions-gh-pages@v4
-      with:
-        github_token: ${{ secrets.GITHUB_TOKEN }}
-        publish_branch: gh-pages
-        publish_dir: allure-report
-        force_orphan: true
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_branch: gh-pages
+          publish_dir: allure-report
+          force_orphan: true
