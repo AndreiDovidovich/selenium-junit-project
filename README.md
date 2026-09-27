@@ -1,5 +1,6 @@
 # UI Automation Project (Selenium + JUnit 5)
 
+[![CI](https://github.com/AndreiDovidovich/selenium-junit-project/actions/workflows/ci.yml/badge.svg)](https://github.com/AndreiDovidovich/selenium-junit-project/actions/workflows/ci.yml)
 ![Java](https://img.shields.io/badge/Java-21-blue)
 ![Selenium](https://img.shields.io/badge/Selenium-4.49.0-green)
 ![JUnit](https://img.shields.io/badge/JUnit-5.11.3-red)
