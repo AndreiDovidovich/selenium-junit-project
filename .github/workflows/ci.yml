@@ -1,0 +1,125 @@
+name: CI — Selenium UI Tests
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:        # ручной запуск из UI
+  schedule:
+    - cron: '0 3 * * *'     # ночной прогон в 03:00 UTC
+
+permissions:
+  contents: write           # для публикации на gh-pages
+  pages: write
+  id-token: write
+
+jobs:
+  test:
+    name: Run UI tests on ${{ matrix.browser }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    strategy:
+      fail-fast: false       # даже если один упал — остальные идут
+      matrix:
+        browser: [ chrome ]  # можно добавить firefox, edge
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: maven
+
+      - name: Set up Chrome
+        uses: browser-actions/setup-chrome@v1
+        with:
+          chrome-version: stable
+
+      - name: Print versions
+        run: |
+          java -version
+          mvn -version
+          google-chrome --version
+
+      - name: Run tests (headless)
+        env:
+          BROWSER: ${{ matrix.browser }}
+        run: mvn -B clean test -Dheadless=true -Dbrowser=${{ matrix.browser }}
+
+      - name: Generate Allure report
+        if: always()
+        run: mvn -B allure:report
+
+      - name: Upload Allure results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: allure-results-${{ matrix.browser }}
+          path: target/allure-results
+          retention-days: 14
+
+      - name: Upload Allure report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: allure-report-${{ matrix.browser }}
+          path: target/site/allure-maven-plugin
+          retention-days: 14
+
+      - name: Upload surefire reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: surefire-reports-${{ matrix.browser }}
+          path: target/surefire-reports
+          retention-days: 7
+
+  # ============================================================
+  # Публикация Allure-отчёта на GitHub Pages
+  # ============================================================
+  publish-report:
+    name: Publish Allure report to GitHub Pages
+    needs: test
+    if: always() && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Download Allure results (chrome)
+        uses: actions/download-artifact@v4
+        with:
+          name: allure-results-chrome
+          path: allure-results
+
+      - name: Get Allure history
+        uses: actions/checkout@v4
+        if: always()
+        continue-on-error: true
+        with:
+          ref: gh-pages
+          path: gh-pages
+
+      - name: Generate Allure report
+        uses: simple-elf/allure-report-action@v1.9
+        if: always()
+        with:
+          allure_results: allure-results
+          allure_history: allure-history
+          keep_reports: 20
+          gh_pages: gh-pages
+          subfolder: allure
+
+      - name: Deploy to GitHub Pages
+        if: always()
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_branch: gh-pages
+          publish_dir: allure-history
