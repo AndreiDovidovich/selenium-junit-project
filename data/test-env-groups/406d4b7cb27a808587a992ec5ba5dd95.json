@@ -1,0 +1,1 @@
+{"id":"406d4b7cb27a808587a992ec5ba5dd95","fullName":"tests.books.SearchBooksTest.searchByPartialTitleTest","name":"Поиск по части названия возвращает подходящие книги","status":"passed","testResultsByEnv":{"default":"e88e3c51a151239fea5a24f90628bfef"}}
