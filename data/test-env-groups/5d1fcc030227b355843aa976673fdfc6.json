@@ -1,0 +1,1 @@
+{"id":"5d1fcc030227b355843aa976673fdfc6","fullName":"tests.books.SearchBooksTest.searchByAuthorTest","name":"Поиск по автору возвращает его книги","status":"passed","testResultsByEnv":{"default":"832ca6f1ce3132cc92250864d59efb6e"}}
